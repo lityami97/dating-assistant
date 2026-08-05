@@ -26,7 +26,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://dating-assistant-9uis.vercel.app",  # Apna Vercel URL
+        "https://dating-assistant-9uis-47f9gj1ja-lityami.vercel.app/",  # Apna Vercel URL
     ],
     allow_credentials=True,
     allow_methods=["*"],
