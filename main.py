@@ -18,6 +18,15 @@ client = Groq(api_key=my_api_key)
 model = "llama-3.3-70b-versatile"
 
 app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ===== PROFILE LOADING =====
 profile_path = Path(__file__).parent / "USER PROFILE — YASH.txt"
