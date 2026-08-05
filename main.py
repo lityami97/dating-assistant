@@ -20,9 +20,15 @@ model = "llama-3.3-70b-versatile"
 app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_origins=[
+        "http://localhost:5173",
+        "https://dating-assistant-9uis.vercel.app",  # Apna Vercel URL
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
