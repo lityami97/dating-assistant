@@ -1,22 +1,23 @@
+import os
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from pathlib import Path
 from dotenv import load_dotenv
 from groq import Groq
-import os
 import json
-
-app = FastAPI()
 
 # ===== INIT =====
 load_dotenv()
 my_api_key = os.getenv("GROQ_API_KEY")
 
 if not my_api_key:
-    raise ValueError("API key missing!")
+    raise ValueError("❌ API key missing! Set GROQ_API_KEY in environment")
 
 client = Groq(api_key=my_api_key)
 model = "llama-3.3-70b-versatile"
+
+app = FastAPI()
 
 # ===== PROFILE LOADING =====
 profile_path = Path(__file__).parent / "USER PROFILE — YASH.txt"
@@ -24,7 +25,8 @@ profile_path = Path(__file__).parent / "USER PROFILE — YASH.txt"
 try:
     profile_text = profile_path.read_text()
 except FileNotFoundError:
-    raise FileNotFoundError(f"Profile file not found at {profile_path}")
+    print(f"⚠️ Warning: Profile file not found at {profile_path}")
+    profile_text = "Default profile - No user data loaded"
 
 # ===== PYDANTIC SCHEMA =====
 class Profile(BaseModel):
@@ -56,9 +58,11 @@ try:
     ticket = Profile(**data_file)
     print("✅ Profile loaded successfully")
 except json.JSONDecodeError as e:
-    raise ValueError(f"Failed to parse profile JSON: {e}")
+    print(f"⚠️ JSON parsing error: {e}")
+    ticket = Profile(profile={})
 except Exception as e:
-    raise RuntimeError(f"Profile parsing failed: {e}")
+    print(f"⚠️ Profile parsing error: {e}")
+    ticket = Profile(profile={})
 
 # ===== MEMORY STORAGE =====
 memory = {}
@@ -219,3 +223,7 @@ if __name__ == "__main__":
     
     print("\n" + "="*50)
     print("Run with: uvicorn dating_assistant_fixed:app --reload")
+    
+    # Or run the server:
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
