@@ -216,14 +216,5 @@ def clear_memory(user_id: str):
 
 # ===== RUN =====
 if __name__ == "__main__":
-    # Test locally
-    print("\n🚀 Testing locally...\n")
-    print("Q: What are your hobbies?")
-    answer_question("What are your hobbies?")
-    
-    print("\n" + "="*50)
-    print("Run with: uvicorn dating_assistant_fixed:app --reload")
-    
-    # Or run the server:
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
