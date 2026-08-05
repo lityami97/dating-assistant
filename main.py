@@ -20,9 +20,6 @@ model = "allam-2-7b-instruct"
 app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
-
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
