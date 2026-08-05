@@ -15,7 +15,7 @@ if not my_api_key:
     raise ValueError("❌ API key missing! Set GROQ_API_KEY in environment")
 
 client = Groq(api_key=my_api_key)
-model = "allam-2-7b-instruct"
+model = "qwen3-32b"
 
 from fastapi.middleware.cors import CORSMiddleware
 
