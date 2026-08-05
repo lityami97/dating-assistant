@@ -17,8 +17,10 @@ if not my_api_key:
 client = Groq(api_key=my_api_key)
 model = "allam-2-7b-instruct"
 
-app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
+
+
+app = FastAPI()
 
 
 app.add_middleware(
