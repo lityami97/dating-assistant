@@ -15,7 +15,7 @@ if not my_api_key:
     raise ValueError("❌ API key missing! Set GROQ_API_KEY in environment")
 
 client = Groq(api_key=my_api_key)
-model = "qwen3-32b"
+model = "openai/gpt-oss-120b"
 
 from fastapi.middleware.cors import CORSMiddleware
 
