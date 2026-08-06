@@ -1,154 +1,287 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const API = "https://dating-assistant-production.up.railway.app";
+
+const INSTA_GRADIENT =
+  "linear-gradient(45deg, #4f5bd5, #962fbf, #d62976, #fa7e1e, #feda75)";
 
 export default function App() {
   const [messages, setMessages] = useState([
     {
-      id: 1,
-      text: "Hi! I'm lityami. Feel free to ask me anything about Yash.",
-      sender: "bot",
-      timestamp: new Date(),
+      role: "assistant",
+      text: "Hey! I'm Lityami. What's on your mind today?",
     },
   ]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollRef = useRef(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
 
-  async function sendMessage(e) {
-    e.preventDefault();
-    if (!question.trim()) return;
+  async function sendMessage() {
+    const text = question.trim();
+    if (!text || loading) return;
 
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      text: question,
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, { role: "user", text }]);
     setQuestion("");
     setLoading(true);
 
     try {
       const res = await fetch(`${API}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question,
-          user_id: "user1",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text, user_id: "user1" }),
       });
-
       const data = await res.json();
-
-      const botMessage = {
-        id: messages.length + 2,
-        text: data.response || "Sorry, I couldn't process that. Please try again.",
-        sender: "bot",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error("Error:", error);
-      const errorMessage = {
-        id: messages.length + 2,
-        text: "Oops! Something went wrong. Please try again.",
-        sender: "bot",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: data.response },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Something went wrong. Try again?" },
+      ]);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white overflow-hidden">
-      {/* HEADER */}
-      <div className="border-b border-gray-800 px-6 py-8 flex-shrink-0">
-        <h1 className="text-4xl font-bold tracking-tight text-center">
-          lityami
-        </h1>
-      </div>
+    <div style={styles.page}>
+      <div style={styles.app}>
+        {/* Header */}
+        <div style={styles.header}>
+          <div style={styles.avatarRing}>
+            <div style={styles.avatar}>L</div>
+          </div>
+          <div>
+            <div style={styles.headerName}>Lityami</div>
+            <div style={styles.headerStatus}>Active now</div>
+          </div>
+        </div>
 
-      {/* MESSAGES CONTAINER */}
-      <div className="flex-1 overflow-y-auto px-6 py-8">
-        <div className="max-w-3xl mx-auto space-y-6">
-          {messages.map((msg) => (
+        {/* Messages */}
+        <div style={styles.thread} ref={scrollRef}>
+          {messages.map((m, i) => (
             <div
-              key={msg.id}
-              className={`flex ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
-              }`}
+              key={i}
+              style={{
+                ...styles.bubbleRow,
+                justifyContent:
+                  m.role === "user" ? "flex-end" : "flex-start",
+              }}
             >
               <div
-                className={`max-w-md px-6 py-4 text-base leading-relaxed break-words ${
-                  msg.sender === "user"
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-200"
-                }`}
+                style={
+                  m.role === "user"
+                    ? styles.bubbleUser
+                    : styles.bubbleAssistant
+                }
               >
-                <p>{msg.text}</p>
-                <span className="text-xs text-gray-500 mt-2 block">
-                  {msg.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+                {m.text}
               </div>
             </div>
           ))}
 
           {loading && (
-            <div className="flex justify-start">
-              <div className="text-gray-500 text-base">
-                <span className="animate-pulse">●●●</span>
+            <div style={{ ...styles.bubbleRow, justifyContent: "flex-start" }}>
+              <div style={styles.bubbleAssistant}>
+                <TypingDots />
               </div>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      {/* INPUT AREA */}
-      <div className="border-t border-gray-800 px-6 py-6 flex-shrink-0">
-        <form onSubmit={sendMessage} className="max-w-3xl mx-auto">
-          <div className="flex gap-3 items-center">
-            <input
-              type="text"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Type your message..."
-              disabled={loading}
-              className="flex-1 px-6 py-4 bg-gray-950 border border-cyan-500 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base"
-              style={{
-                boxShadow: "0 0 20px rgba(34, 211, 238, 0.2)",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={loading || !question.trim()}
-              className="px-6 py-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            >
-              {loading ? "..." : "Send"}
-            </button>
-          </div>
-        </form>
+        {/* Composer */}
+        <div style={styles.composer}>
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Message..."
+            style={styles.input}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={loading || !question.trim()}
+            style={{
+              ...styles.sendBtn,
+              opacity: loading || !question.trim() ? 0.4 : 1,
+            }}
+            aria-label="Send message"
+          >
+            <SendIcon />
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+function TypingDots() {
+  return (
+    <div style={styles.typing}>
+      <span style={{ ...styles.dot, animationDelay: "0s" }} />
+      <span style={{ ...styles.dot, animationDelay: "0.15s" }} />
+      <span style={{ ...styles.dot, animationDelay: "0.3s" }} />
+      <style>{`
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M4 12L20 4L14 20L11 13L4 12Z"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#000",
+    display: "flex",
+    justifyContent: "center",
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  },
+  app: {
+    width: "100%",
+    maxWidth: "420px",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    background: "#000",
+    borderLeft: "1px solid #1a1a1a",
+    borderRight: "1px solid #1a1a1a",
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "14px 16px",
+    borderBottom: "1px solid #1c1c1e",
+  },
+  avatarRing: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "50%",
+    padding: "2px",
+    background: INSTA_GRADIENT,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatar: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    background: "#000",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: 700,
+    fontSize: "16px",
+  },
+  headerName: {
+    color: "#f5f5f5",
+    fontSize: "15px",
+    fontWeight: 600,
+  },
+  headerStatus: {
+    color: "#8e8e8e",
+    fontSize: "12px",
+    marginTop: "1px",
+  },
+  thread: {
+    flex: 1,
+    overflowY: "auto",
+    padding: "16px 12px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  bubbleRow: {
+    display: "flex",
+    width: "100%",
+  },
+  bubbleUser: {
+    maxWidth: "75%",
+    padding: "10px 14px",
+    borderRadius: "20px",
+    color: "#fff",
+    fontSize: "14.5px",
+    lineHeight: 1.35,
+    background: INSTA_GRADIENT,
+  },
+  bubbleAssistant: {
+    maxWidth: "75%",
+    padding: "10px 14px",
+    borderRadius: "20px",
+    color: "#f5f5f5",
+    fontSize: "14.5px",
+    lineHeight: 1.35,
+    background: "#262626",
+  },
+  typing: {
+    display: "flex",
+    gap: "4px",
+    padding: "2px 0",
+  },
+  dot: {
+    width: "6px",
+    height: "6px",
+    borderRadius: "50%",
+    background: "#b3b3b3",
+    display: "inline-block",
+    animation: "bounce 1s infinite",
+  },
+  composer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "10px 12px",
+    borderTop: "1px solid #1c1c1e",
+  },
+  input: {
+    flex: 1,
+    background: "#1c1c1e",
+    border: "1px solid #2c2c2e",
+    borderRadius: "999px",
+    padding: "10px 16px",
+    color: "#f5f5f5",
+    fontSize: "14.5px",
+    outline: "none",
+  },
+  sendBtn: {
+    width: "38px",
+    height: "38px",
+    borderRadius: "50%",
+    border: "none",
+    background: INSTA_GRADIENT,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    flexShrink: 0,
+  },
+};
