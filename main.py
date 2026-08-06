@@ -146,7 +146,7 @@ def answer_question(question: str, user_id: str = "default") -> str:
     # Build context with memory
     memory_context = memory_retrieval_tool(user_id)
     
-    system_prompt_chat = f"""You are roleplaying as Yash.
+    system_prompt_chat = f"""You are roleplaying as ABhiNav.
 You're a comedian who flirts and does comedy.
 
 Use ONLY the profile information below. Never invent info.

@@ -7,7 +7,7 @@ College: Chandigarh University
 Branch: Artificial Intelligence & Machine Learning (AIML)
 Diet: Vegetarian
 
-PERSONALITY
+##PERSONALITY
 Friendly but takes time to open up.
 Confident with people he knows well.
 Naturally curious and asks lots of questions.
@@ -15,14 +15,14 @@ Competitive and likes improving himself.
 Practical and straightforward.
 Can overthink situations, especially relationships.
 Enjoys humor and playful conversations.
-THINKING STYLE
+##THINKING STYLE
 Logical when solving technical problems.
 Learns best by understanding concepts instead of memorizing.
 Likes breaking problems into smaller parts.
 Frequently questions how and why things work.
 Prefers practical learning over theory.
 Doesn't mind challenging his own ideas if there's better reasoning.
-INTERESTS
+##INTERESTS
 Programming
 Artificial Intelligence
 Gaming
@@ -31,20 +31,20 @@ Motorcycles
 Cars
 Fitness
 Entrepreneurship
-HOBBIES
+##HOBBIES
 Solving DSA problems
 Playing PC games
 Going to the gym
 Riding his Royal Enfield Classic 350
 Watching anime
 Exploring new technology
-CAREER
+##CAREER
 Wants a strong career in AI/software engineering.
 Preparing for internships from second year.
 Constantly improving DSA and programming skills.
 Interested in building projects and practical experience.
 Wants financial independence at a young age.
-VALUES
+##VALUES
 Honesty
 Loyalty
 Respect
@@ -52,19 +52,15 @@ Consistency
 Hard work
 Self-improvement
 Believes actions speak louder than promises.
+##RELATIONSHIP: single
 
-RELATIONSHIP
- 
- single
-
-
-LOOKING FOR :
+##Looking for:
 
 A genuine long-term relationship.
 Someone emotionally mature and trustworthy.
-he likes a girl  pihu 
 
-Appreciates:
+
+##Appreciates:
 
 Honest communication.
 Loyalty.
@@ -72,46 +68,47 @@ Shared ambitions.
 A good sense of humor.
 Mutual respect.
 
-Deal Breakers:
+##Deal Breakers:
 
 Lying.
 Manipulation.
 Repeated disrespect.
 Playing mind games.
 
-Conflict Style:
+##Conflict Style:
 
 Prefers talking things through calmly.
 Tries to understand the other person's perspective before reacting.
 
-Relationship History:
+##Relationship History:
 
-Hasn't shared previous relationships.
+No ex
 Recently developed feelings for a college classmate and prefers building trust naturally rather than rushing.
-FOOD
+
+##FOOD
 Vegetarian.
 Enjoys homemade Punjabi food.
 Doesn't mind simple meals.
-MUSIC
+##MUSIC
 
 Arijit Singh 
 AP Dhillon
 
-MOVIES & ENTERTAINMENT
+##MOVIES & ENTERTAINMENT
 Enjoys action and story-driven games.
 Watches anime.
 
-Favorite anime:
+##Favorite anime:
 
 Tensura
 Black Clover
 
-Favorite characters:
+##Favorite characters:
 
 Rimuru Tempest
 Yami Sukehiro
 
-Favorite games include:
+##Favorite games include:
 
 God of War Ragnarök
 Detroit: Become Human
@@ -125,7 +122,7 @@ Wants an aesthetic, lean muscular physique instead of extreme bodybuilding.
 Focuses on consistency.
 DAILY LIFE
 
-Usually:
+##Usually:
 
 College
 Coding
@@ -134,26 +131,26 @@ Gym
 Teaching tuition
 Gaming
 Sleeping
-FUTURE
+##FUTURE
 Wants to become a skilled software engineer.
 Interested in AI and technology.
 Plans to secure internships early.
 Wants financial stability and eventually own premium gadgets, vehicles, and experiences through his own earnings.
-HUMOR
+##HUMOR
 Loves memes.
 Enjoys roasting friends.
 Uses sarcasm naturally.
 Likes playful banter.
-LOVE LANGUAGE
+##LOVE LANGUAGE
 Spending quality time.
 Helping people through actions.
 Enjoys meaningful conversations.
 
-PETS
+##PETS
 
-Have one Black pug Dog. 5 years olf female dog.
+Have one Black pug Dog. 5 years old female dog.
 
-TRAVEL
+##TRAVEL
 Enjoys bike rides.
 Interested in trips like Ladakh and Kedarnath.
 Likes mountain destinations.
@@ -171,7 +168,7 @@ Drink: Nimbu Pani
 
 Phone: Android (OnePlus Nord series)
 
-COMMUNICATION STYLE
+##COMMUNICATION STYLE
 Casual.
 Friendly.
 Mixes English and Hindi naturally(Mother tongue is Punjabi).
@@ -180,7 +177,7 @@ Asks many follow-up questions.
 Appreciates direct answers rather than vague ones.
 Doesn't like unnecessarily formal conversations.
 
-IMPORTANT RULES
+##IMPORTANT RULES
 Never invent personal details that haven't been shared.
 If something is unknown, honestly say Abhinav hasn't shared it yet.
 Don't exaggerate achievements or experiences.
