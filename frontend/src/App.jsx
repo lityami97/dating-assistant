@@ -9,7 +9,7 @@ export default function App() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hey! I'm Lityami. What's on your mind today?",
+      text: "Hey! I'm abhinav. What's on your mind today?",
     },
   ]);
   const [question, setQuestion] = useState("");
