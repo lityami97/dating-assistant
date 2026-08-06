@@ -45,24 +45,35 @@ class Profile(BaseModel):
 schema = Profile.model_json_schema()
 
 # ===== PARSE PROFILE TO JSON - IMPROVED =====
-system_prompt_parse = f"""You are a JSON generator that extracts user profile information with absolute precision.
+system_prompt_parse = f"""You are a profile parser. Your task is to extract ALL information from a user profile and convert it into structured JSON.
 
 CRITICAL RULES:
-1. Extract EVERY section header and ALL its content WITHOUT OMISSIONS
-2. Preserve all key-value pairs and nested structures exactly as presented
-3. For list items, split by commas, bullets, or line breaks and clean whitespace
-4. DO NOT drop any data - completeness is mandatory
-5. DO NOT hallucinate or infer data not explicitly present in the profile
-6. Return ONLY valid JSON matching the provided schema with no explanations
-7. If a section has no data, still include it with an empty array []
-8. Common section headers: Identity, Personality, Interests, Skills, Relationships, Values, Goals, Preferences, Background, Style, Hobbies, Experience
+1. Extract EVERY section header and ALL its content
+2. Preserve hierarchical structure - nested keys must be included
+3. For lists, split by commas or bullets and clean whitespace
+4. Do NOT drop any data - completeness is mandatory
+5. Do NOT hallucinate or infer data not present
+6. Return ONLY valid JSON matching this schema, no explanations
+7. If a section is empty, still include it with empty array []
 
 Schema to follow strictly:
-{schema}"""
+{schema}
+
+Common section headers to look for:
+- Identity (name, age, location, profession, title)
+- Personality (traits, characteristics, behavioral style)
+- Interests (hobbies, passions, likes, activities)
+- Skills (competencies, expertise, abilities)
+- Relationships (family, friends, connections, people)
+- Values (beliefs, principles, what matters)
+- Goals (aspirations, targets, future plans)
+- Preferences (likes, dislikes, favorites)
+- Background (history, education, experience)
+- Style (communication, aesthetics, approach)"""
 
 messages_parse = [
     {"role": "system", "content": system_prompt_parse},
-    {"role": "user", "content": f"Convert this profile into JSON:\n{profile_text}"}
+    {"role": "user", "content": f"Parse this profile into JSON:\n\n{profile_text}"}
 ]
 
 try:
@@ -75,6 +86,7 @@ try:
     data_file = json.loads(raw_json)
     ticket = Profile(**data_file)
     print("✅ Profile loaded successfully")
+    print(f"📋 Sections: {list(ticket.profile.keys())}")
 except json.JSONDecodeError as e:
     print(f"⚠️ JSON parsing error: {e}")
     ticket = Profile(profile={})
@@ -107,31 +119,32 @@ def introduction_tool():
 
 # ===== CHAT LOGIC - IMPROVED =====
 def get_relevant_section(question: str) -> str:
-    """Classifies question to appropriate profile section with fuzzy matching and fallback"""
+    """Classifies question to appropriate profile section with fuzzy matching"""
     
     available_sections = list(ticket.profile.keys())
     
-    classifier_prompt = f"""You are a semantic section classifier. Your task is to map user questions to the most relevant profile section.
+    classifier_prompt = f"""You are a semantic classifier. Map user questions to profile sections with high accuracy.
 
-Available profile sections: {available_sections}
+Available profile sections:
+{json.dumps(available_sections)}
 
 User question: "{question}"
 
 MAPPING RULES:
-- Questions like "what do you like?" or "your favorites?" → "Interests" or "Preferences"
-- Questions like "who are you?" or "tell me about yourself" → "Identity" or "Background"
-- Questions like "how are you?" or "your character" → "Personality"
-- Questions like "what are your goals?" or "future plans" → "Goals"
-- Questions like "what do you do?" or "your job" → "Skills" or "Experience"
-- Questions like "your hobbies?" → "Interests" or "Hobbies"
-- Questions like "what matters to you?" → "Values"
-- Questions like "your style?" → "Style"
-- Questions like "family?" or "friends?" → "Relationships"
+- "what do you like?" → "Interests" or "Preferences"
+- "who are you?" → "Identity"
+- "how are you?" → "Personality"
+- "what are your goals?" → "Goals"
+- "tell me about yourself" → "Background" or "Identity"
+- "what do you do?" → "Skills" or "Profession"
+- "your hobbies" → "Interests"
+- "your values" → "Values"
+- "your style" → "Style"
+- "family/friends" → "Relationships"
 
-OUTPUT INSTRUCTION:
-Return ONLY the exact section name from the available sections list.
-If no section matches, return only: UNKNOWN
-Do not add explanations or reasoning."""
+OUTPUT RULE:
+Return ONLY the exact section name from available sections, or "UNKNOWN" if no match.
+Do not add anything else - no explanations, no reasoning."""
 
     messages_classify = [
         {"role": "system", "content": classifier_prompt},
@@ -143,11 +156,11 @@ Do not add explanations or reasoning."""
             model=model,
             messages=messages_classify
         )
-        heading = response_classify.choices[0].message.content.strip()
+        heading = response_classify.choices[0].message.content.strip().upper()
         
-        # Fallback validation: ensure heading matches available sections
+        # Fallback: check if heading is in available sections
         for section in available_sections:
-            if heading.upper() == section.upper():
+            if heading == section.upper():
                 return section
         
         return "UNKNOWN"
@@ -156,70 +169,73 @@ Do not add explanations or reasoning."""
         return "UNKNOWN"
 
 def answer_question(question: str, user_id: str = "default") -> str:
-    """Main chat function with memory + profile context - IMPROVED SYSTEM PROMPT"""
+    """Main chat function with memory + profile context - IMPROVED"""
     
     # Get relevant section
-    heading = get_relevant_section(question)
+    section = get_relevant_section(question)
     
-    if heading.upper() == "UNKNOWN":
+    if section == "UNKNOWN":
         relevant_data = []
     else:
-        relevant_data = ticket.profile.get(heading, [])
-        
-    # Retrieve conversation history
-    chat_history = memory_retrieval_tool(user_id)
+        relevant_data = ticket.profile.get(section, [])
     
-    # Build full profile context
-    full_profile_context = ""
-    for key, values in ticket.profile.items():
-        full_profile_context += f"{key}: {', '.join(values)}\n"
+    # Retrieve conversation history
+    conversation_history = memory_retrieval_tool(user_id)
+    
+    # Format context
+    profile_context = "USER PROFILE CONTEXT:\n"
+    for section_name, section_data in ticket.profile.items():
+        profile_context += f"\n{section_name}:\n"
+        for item in section_data:
+            profile_context += f"  - {item}\n"
+    
+    # Build conversation history for context
+    history_text = ""
+    if conversation_history:
+        history_text = "\nRECENT CONVERSATION HISTORY:\n"
+        for msg in conversation_history[-6:]:  # Last 3 exchanges
+            role = "User" if msg["role"] == "user" else "You"
+            history_text += f"{role}: {msg['content']}\n"
     
     # Build relevant section context
-    relevant_context = ""
+    relevant_section_text = ""
     if relevant_data:
-        relevant_context = f"\nMost Relevant Information ({heading}):\n{', '.join(relevant_data)}"
+        relevant_section_text = f"\nRELEVANT PROFILE SECTION ({section}):\n"
+        for item in relevant_data:
+            relevant_section_text += f"  - {item}\n"
     
-    # Format chat history for context
-    history_context = ""
-    if chat_history:
-        history_context = "\nPrevious Conversation:\n"
-        for msg in chat_history[-4:]:
-            role = "User" if msg["role"] == "user" else "Assistant"
-            history_context += f"{role}: {msg['content']}\n"
-    
-    # STRONG SYSTEM PROMPT - STRICT PROFILE ADHERENCE
-    system_prompt_answer = f"""You are an AI assistant that embodies the personality, characteristics, knowledge, and communication style of a user based on their complete profile.
+    # System prompt - STRONG IDENTITY & ADHERENCE
+    system_prompt_answer = f"""You are an AI assistant embodying the personality and knowledge of the user based on their profile.
 
-CORE IDENTITY RULES:
-1. STRICT PROFILE ADHERENCE: Answer ONLY using information from the user's profile provided. NEVER hallucinate, invent, or assume facts not explicitly stated in the profile.
-2. CHARACTER AUTHENTICITY: Maintain exact personality traits, communication style, tone, and behavioral patterns from the profile at all times.
-3. CONTEXTUAL ACCURACY: Use the most relevant profile section to provide authentic, grounded responses that align with the user's documented information.
-4. CONVERSATION CONTINUITY: Reference and maintain consistency with previous conversation points to preserve logical flow and conversation memory.
-5. HONEST LIMITATIONS: If asked about something not in the profile, clearly state "I don't have that information in my profile" rather than guessing or fabricating details.
-6. FIRST-PERSON CONSISTENCY: Always speak from the user's perspective using their profile data as the foundation for all statements.
+CORE DIRECTIVES:
+1. STRICT ADHERENCE: Answer ONLY using information from the provided profile. Do NOT hallucinate or invent facts.
+2. CHARACTER CONSISTENCY: Maintain the exact personality, tone, and characteristics described in the profile.
+3. CONTEXTUAL AWARENESS: Use relevant profile sections to inform your responses with authenticity.
+4. MEMORY INTEGRATION: Reference previous conversation points to maintain continuity and coherence.
+5. ACCURACY FIRST: If information is not in the profile, explicitly state "I don't have that information in my profile" rather than guessing.
 
-COMPLETE USER PROFILE DATA:
-{full_profile_context}
-{relevant_context}
-{history_context}
+PROFILE DATA:
+{profile_context}
+{relevant_section_text}
+{history_text}
 
-RESPONSE STYLE:
-- Speak naturally using first person ("I", "my", "we" where applicable)
-- Match the exact communication style and tone from the profile
-- Keep responses conversational and concise (typically 1-3 sentences)
-- Prioritize accuracy and profile-alignment over elaboration
-- Maintain personality consistency even when discussing unfamiliar topics"""
+RESPONSE FORMAT:
+- Keep responses natural and conversational
+- Use first-person perspective ("I", "my", "we" if applicable)
+- Match the communication style from the profile
+- Be authentic to the personality traits listed
+- Keep responses concise and relevant (2-3 sentences typically)"""
 
-    # Build messages array with system prompt + history + current question
+    # Build messages for LLM
     messages_answer = [
-        {"role": "system", "content": system_prompt_answer}
+        {"role": "system", "content": system_prompt_answer},
     ]
     
-    # Add existing chat history
-    for msg in chat_history:
+    # Add conversation history
+    for msg in conversation_history:
         messages_answer.append(msg)
     
-    # Add current user question
+    # Add current question
     messages_answer.append({"role": "user", "content": question})
     
     try:
@@ -232,7 +248,7 @@ RESPONSE STYLE:
         
         answer = response_answer.choices[0].message.content
         
-        # Store Q&A in memory
+        # Store in memory
         memory_storage_tool(user_id, "user", question)
         memory_storage_tool(user_id, "assistant", answer)
         
@@ -262,12 +278,12 @@ def get_profile():
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    heading = get_relevant_section(request.question)
+    section = get_relevant_section(request.question)
     answer = answer_question(request.question, request.user_id)
     return ChatResponse(
         question=request.question,
         answer=answer,
-        section_used=heading
+        section_used=section
     )
 
 @app.get("/memory/{user_id}")

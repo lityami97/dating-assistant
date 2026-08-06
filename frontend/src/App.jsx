@@ -24,33 +24,54 @@ export default function App() {
   }, [messages, loading]);
 
   async function sendMessage() {
-    const text = question.trim();
-    if (!text || loading) return;
+  const text = question.trim();
+  if (!text || loading) return;
 
-    setMessages((prev) => [...prev, { role: "user", text }]);
-    setQuestion("");
-    setLoading(true);
+  setMessages((prev) => [...prev, { role: "user", text }]);
+  setQuestion("");
+  setLoading(true);
 
-    try {
-      const res = await fetch(`${API}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text, user_id: "user1" }),
-      });
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: data.response },
-      ]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Something went wrong. Try again?" },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+  try {
+    console.log("Sending request to:", `${API}/chat`);
+
+    const res = await fetch(`${API}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        question: text,
+        user_id: "user1",
+      }),
+    });
+
+    console.log("Status:", res.status);
+
+    const data = await res.json();
+
+    console.log("Response:", data);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        text: data.answer,
+      },
+    ]);
+  } catch (err) {
+    console.error("Fetch Error:", err);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        text: err.message,
+      },
+    ]);
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div style={styles.page}>
