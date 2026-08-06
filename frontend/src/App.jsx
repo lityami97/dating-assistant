@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const API = "https://dating-assistant-production.up.railway.app";
+const API = "https://railway.com/project/bf0c7b40-d3ca-4d58-93da-075be024a7a8/service/12e3c536-9dde-4c31-81fd-5983c9100317?environmentId=e1067bdc-9c77-4153-adfa-ee935f391e25";
 
 export default function App() {
   const [messages, setMessages] = useState([
