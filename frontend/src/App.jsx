@@ -32,8 +32,6 @@ export default function App() {
   setLoading(true);
 
   try {
-    console.log("Sending request to:", `${API}/chat`);
-
     const res = await fetch(`${API}/chat`, {
       method: "POST",
       headers: {
@@ -45,27 +43,32 @@ export default function App() {
       }),
     });
 
-    console.log("Status:", res.status);
+    if (!res.ok) {
+      throw new Error(`HTTP Error: ${res.status}`);
+    }
 
     const data = await res.json();
 
-    console.log("Response:", data);
+    console.log("Backend Response:", data);
 
     setMessages((prev) => [
       ...prev,
       {
         role: "assistant",
-        text: data.answer,
+        text:
+          data.answer ||
+          data.response ||
+          "Sorry, I couldn't generate a response.",
       },
     ]);
   } catch (err) {
-    console.error("Fetch Error:", err);
+    console.error("Chat Error:", err);
 
     setMessages((prev) => [
       ...prev,
       {
         role: "assistant",
-        text: err.message,
+        text: `Error: ${err.message}`,
       },
     ]);
   } finally {
