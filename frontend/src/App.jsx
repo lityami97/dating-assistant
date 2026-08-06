@@ -1,311 +1,213 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const API = "https://dating-assistant-production.up.railway.app";
-
-const INSTA_GRADIENT =
-  "linear-gradient(45deg, #4f5bd5, #962fbf, #d62976, #fa7e1e, #feda75)";
 
 export default function App() {
   const [messages, setMessages] = useState([
     {
-      role: "assistant",
-      text: "Hey! I'm abhinav. What's on your mind today?",
+      id: 1,
+      text: "Hi! I'm lityami. Feel free to ask me anything about Yash.",
+      sender: "bot",
+      timestamp: new Date(),
     },
   ]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages, loading]);
+    scrollToBottom();
+  }, [messages]);
 
-  async function sendMessage() {
-  const text = question.trim();
-  if (!text || loading) return;
+  async function sendMessage(e) {
+    e.preventDefault();
+    if (!question.trim()) return;
 
-  setMessages((prev) => [...prev, { role: "user", text }]);
-  setQuestion("");
-  setLoading(true);
+    // Add user message to chat
+    const userMessage = {
+      id: messages.length + 1,
+      text: question,
+      sender: "user",
+      timestamp: new Date(),
+    };
 
-  try {
-    const res = await fetch(`${API}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        question: text,
-        user_id: "user1",
-      }),
-    });
+    setMessages((prev) => [...prev, userMessage]);
+    setQuestion("");
+    setLoading(true);
 
-    if (!res.ok) {
-      throw new Error(`HTTP Error: ${res.status}`);
+    try {
+      const res = await fetch(`${API}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question,
+          user_id: "user1",
+        }),
+      });
+
+      const data = await res.json();
+
+      const botMessage = {
+        id: messages.length + 2,
+        text: data.response || "Sorry, I couldn't process that. Please try again.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error:", error);
+      const errorMessage = {
+        id: messages.length + 2,
+        text: "Oops! Something went wrong. Please try again.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
     }
-
-    const data = await res.json();
-
-    console.log("Backend Response:", data);
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        text:
-          data.answer ||
-          data.response ||
-          "Sorry, I couldn't generate a response.",
-      },
-    ]);
-  } catch (err) {
-    console.error("Chat Error:", err);
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        text: `Error: ${err.message}`,
-      },
-    ]);
-  } finally {
-    setLoading(false);
   }
-}
 
   return (
-    <div style={styles.page}>
-      <div style={styles.app}>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
+      {/* Animated background effect */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-slate-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Content wrapper */}
+      <div className="relative z-10 flex flex-col h-screen">
         {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.avatarRing}>
-            <div style={styles.avatar}>L</div>
-          </div>
-          <div>
-            <div style={styles.headerName}>Lityami</div>
-            <div style={styles.headerStatus}>Active now</div>
+        <div className="border-b border-slate-700/50 backdrop-blur-md bg-slate-900/30">
+          <div className="max-w-2xl mx-auto px-6 py-6">
+            <h1 className="text-3xl font-light text-white tracking-tight">
+              lityami
+            </h1>
+            <p className="text-slate-300 text-sm mt-2 font-light">
+              Ask me anything about Yash
+            </p>
           </div>
         </div>
 
-        {/* Messages */}
-        <div style={styles.thread} ref={scrollRef}>
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                ...styles.bubbleRow,
-                justifyContent:
-                  m.role === "user" ? "flex-end" : "flex-start",
-              }}
-            >
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto px-6 py-8">
+          <div className="max-w-2xl mx-auto space-y-6">
+            {messages.map((msg) => (
               <div
-                style={
-                  m.role === "user"
-                    ? styles.bubbleUser
-                    : styles.bubbleAssistant
-                }
+                key={msg.id}
+                className={`flex ${
+                  msg.sender === "user" ? "justify-end" : "justify-start"
+                }`}
               >
-                {m.text}
+                <div
+                  className={`max-w-xs lg:max-w-md px-5 py-3.5 rounded-2xl backdrop-blur-sm ${
+                    msg.sender === "user"
+                      ? "bg-blue-600/80 text-white rounded-br-sm shadow-lg hover:bg-blue-600 transition-all"
+                      : "bg-slate-800/60 text-slate-100 border border-slate-700/50 rounded-bl-sm shadow-md hover:bg-slate-800/80 transition-all"
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed font-light">
+                    {msg.text}
+                  </p>
+                  <span
+                    className={`text-xs mt-2 block ${
+                      msg.sender === "user"
+                        ? "text-blue-200"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    {msg.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {loading && (
-            <div style={{ ...styles.bubbleRow, justifyContent: "flex-start" }}>
-              <div style={styles.bubbleAssistant}>
-                <TypingDots />
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-slate-800/60 text-slate-100 border border-slate-700/50 px-5 py-3.5 rounded-2xl rounded-bl-sm shadow-md backdrop-blur-sm">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
-        {/* Composer */}
-        <div style={styles.composer}>
-          <input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Message..."
-            style={styles.input}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={loading || !question.trim()}
-            style={{
-              ...styles.sendBtn,
-              opacity: loading || !question.trim() ? 0.4 : 1,
-            }}
-            aria-label="Send message"
-          >
-            <SendIcon />
-          </button>
+        {/* Input Area */}
+        <div className="border-t border-slate-700/50 backdrop-blur-md bg-slate-900/30">
+          <form onSubmit={sendMessage} className="max-w-2xl mx-auto px-6 py-6">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Type your question here..."
+                disabled={loading}
+                className="flex-1 px-5 py-3 border border-slate-600/50 rounded-full bg-slate-800/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-light disabled:bg-slate-900/30 disabled:cursor-not-allowed backdrop-blur-sm hover:bg-slate-800/60"
+              />
+              <button
+                type="submit"
+                disabled={loading || !question.trim()}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full font-light hover:from-blue-500 hover:to-blue-600 transition-all disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:shadow-blue-500/50"
+              >
+                {loading ? "..." : "Send"}
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-3 text-center font-light">
+              Powered by AI • Questions are processed securely
+            </p>
+          </form>
         </div>
       </div>
-    </div>
-  );
-}
 
-function TypingDots() {
-  return (
-    <div style={styles.typing}>
-      <span style={{ ...styles.dot, animationDelay: "0s" }} />
-      <span style={{ ...styles.dot, animationDelay: "0.15s" }} />
-      <span style={{ ...styles.dot, animationDelay: "0.3s" }} />
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-          30% { transform: translateY(-4px); opacity: 1; }
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
         }
       `}</style>
     </div>
   );
 }
-
-function SendIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M4 12L20 4L14 20L11 13L4 12Z"
-        stroke="white"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#000",
-    display: "flex",
-    justifyContent: "center",
-    fontFamily:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-  },
-  app: {
-    width: "100%",
-    maxWidth: "420px",
-    height: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    background: "#000",
-    borderLeft: "1px solid #1a1a1a",
-    borderRight: "1px solid #1a1a1a",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "14px 16px",
-    borderBottom: "1px solid #1c1c1e",
-  },
-  avatarRing: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "50%",
-    padding: "2px",
-    background: INSTA_GRADIENT,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-    borderRadius: "50%",
-    background: "#000",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: 700,
-    fontSize: "16px",
-  },
-  headerName: {
-    color: "#f5f5f5",
-    fontSize: "15px",
-    fontWeight: 600,
-  },
-  headerStatus: {
-    color: "#8e8e8e",
-    fontSize: "12px",
-    marginTop: "1px",
-  },
-  thread: {
-    flex: 1,
-    overflowY: "auto",
-    padding: "16px 12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  bubbleRow: {
-    display: "flex",
-    width: "100%",
-  },
-  bubbleUser: {
-    maxWidth: "75%",
-    padding: "10px 14px",
-    borderRadius: "20px",
-    color: "#fff",
-    fontSize: "14.5px",
-    lineHeight: 1.35,
-    background: INSTA_GRADIENT,
-  },
-  bubbleAssistant: {
-    maxWidth: "75%",
-    padding: "10px 14px",
-    borderRadius: "20px",
-    color: "#f5f5f5",
-    fontSize: "14.5px",
-    lineHeight: 1.35,
-    background: "#262626",
-  },
-  typing: {
-    display: "flex",
-    gap: "4px",
-    padding: "2px 0",
-  },
-  dot: {
-    width: "6px",
-    height: "6px",
-    borderRadius: "50%",
-    background: "#b3b3b3",
-    display: "inline-block",
-    animation: "bounce 1s infinite",
-  },
-  composer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "10px 12px",
-    borderTop: "1px solid #1c1c1e",
-  },
-  input: {
-    flex: 1,
-    background: "#1c1c1e",
-    border: "1px solid #2c2c2e",
-    borderRadius: "999px",
-    padding: "10px 16px",
-    color: "#f5f5f5",
-    fontSize: "14.5px",
-    outline: "none",
-  },
-  sendBtn: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "50%",
-    border: "none",
-    background: INSTA_GRADIENT,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    flexShrink: 0,
-  },
-};
